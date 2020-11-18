@@ -19,7 +19,6 @@ exports.create = (req, res) => {
   });
 };
 
-
 exports.list = (req, res) => {
   Category.find({}).exec((err, data) => {
     if (err) {
@@ -41,7 +40,7 @@ exports.read = (req, res) => {
         error: errorHandler(err)
       });
     };
-    // res.json(category);
+
     Blog.find({ categories: category })
       .populate('categories', '_id name slug')
       .populate('tags', '_id name slug')

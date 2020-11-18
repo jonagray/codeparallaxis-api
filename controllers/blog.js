@@ -54,7 +54,7 @@ exports.create = (req, res) => {
         blog.mtitle = `${title} | ${process.env.APP_NAME}`;
         blog.mdesc = stripHtml(body.substring(0, 160));
         blog.postedBy = req.auth._id;
-        // categories and tags
+
         let arrayOfCategories = categories && categories.split(',');
         let arrayOfTags = tags && tags.split(',');
 
@@ -74,7 +74,6 @@ exports.create = (req, res) => {
                     error: errorHandler(err)
                 });
             }
-            // res.json(result);
             Blog.findByIdAndUpdate(result._id, { $push: { categories: arrayOfCategories } }, { new: true }).exec(
                 (err, result) => {
                     if (err) {
@@ -100,8 +99,6 @@ exports.create = (req, res) => {
     });
 };
 
-// list, listAllBlogsCategoriesTags, read, remove, update
-
 exports.list = (req, res) => {
     Blog.find({})
         .populate('categories', '_id name slug')
@@ -121,7 +118,6 @@ exports.list = (req, res) => {
 exports.listAllBlogsCategoriesTags = (req, res) => {
     let limit = req.body.limit ? parseInt(req.body.limit) : 10;
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
-
     let blogs;
     let categories;
     let tags;
@@ -140,16 +136,14 @@ exports.listAllBlogsCategoriesTags = (req, res) => {
                     error: errorHandler(err)
                 });
             }
-            blogs = data; // blogs
-            // get all categories
+            blogs = data;
             Category.find({}).exec((err, c) => {
                 if (err) {
                     return res.json({
                         error: errorHandler(err)
                     });
                 }
-                categories = c; // categories
-                // get all tags
+                categories = c;
                 Tag.find({}).exec((err, t) => {
                     if (err) {
                         return res.json({
@@ -157,7 +151,6 @@ exports.listAllBlogsCategoriesTags = (req, res) => {
                         });
                     }
                     tags = t;
-                    // return all blogs categories tags
                     res.json({ blogs, categories, tags, size: blogs.length });
                 });
             });
@@ -167,7 +160,6 @@ exports.listAllBlogsCategoriesTags = (req, res) => {
 exports.read = (req, res) => {
     const slug = req.params.slug.toLowerCase();
     Blog.findOne({ slug })
-        // .select("-photo")
         .populate('categories', '_id name slug')
         .populate('tags', '_id name slug')
         .populate('postedBy', '_id name username')
@@ -205,33 +197,31 @@ exports.update = (req, res) => {
                 error: 'Photo could not be uploaded'
             });
         }
- 
+
         let user = req.profile;
-        // user's existing role and email before update
         let existingRole = user.role;
         let existingEmail = user.email;
- 
+
         if (fields && fields.username && fields.username.length > 12) {
             return res.status(400).json({
                 error: 'Username should be less than 12 characters long'
             });
         }
- 
+
         if (fields.username) {
             fields.username = slugify(fields.username).toLowerCase();
         }
- 
+
         if (fields.password && fields.password.length < 6) {
             return res.status(400).json({
                 error: 'Password should be min 6 characters long'
             });
         }
- 
+
         user = _.extend(user, fields);
-        // user's existing role and email - dont update
         user.role = existingRole;
         user.email = existingEmail;
- 
+
         if (files.photo) {
             if (files.photo.size > 10000000) {
                 return res.status(400).json({
@@ -241,7 +231,7 @@ exports.update = (req, res) => {
             user.photo.data = fs.readFileSync(files.photo.path);
             user.photo.contentType = files.photo.type;
         }
- 
+
         user.save((err, result) => {
             if (err) {
                 console.log('profile udpate error', err);
@@ -256,68 +246,6 @@ exports.update = (req, res) => {
         });
     });
 };
-
-// exports.update = (req, res) => {
-//     const slug = req.params.slug.toLowerCase();
-
-//     Blog.findOne({ slug }).exec((err, oldBlog) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 error: errorHandler(err)
-//             });
-//         }
-
-//         let form = new formidable.IncomingForm();
-//         form.keepExtensions = true;
-
-//         form.parse(req, (err, fields, files) => {
-//             if (err) {
-//                 return res.status(400).json({
-//                     error: 'Image could not upload'
-//                 });
-//             }
-
-//             let slugBeforeMerge = oldBlog.slug;
-//             oldBlog = _.merge(oldBlog, fields);
-//             oldBlog.slug = slugBeforeMerge;
-
-//             const { body, desc, categories, tags } = fields;
-
-//             if (body) {
-//                 oldBlog.excerpt = smartTrim(body, 320, ' ', ' ...');
-//                 oldBlog.desc = stripHtml(body.substring(0, 160));
-//             }
-
-//             if (categories) {
-//                 oldBlog.categories = categories.split(',');
-//             }
-
-//             if (tags) {
-//                 oldBlog.tags = tags.split(',');
-//             }
-
-//             if (files.photo) {
-//                 if (files.photo.size > 10000000) {
-//                     return res.status(400).json({
-//                         error: 'Image should be less then 1mb in size'
-//                     });
-//                 }
-//                 oldBlog.photo.data = fs.readFileSync(files.photo.path);
-//                 oldBlog.photo.contentType = files.photo.type;
-//             }
-
-//             oldBlog.save((err, result) => {
-//                 if (err) {
-//                     return res.status(400).json({
-//                         error: errorHandler(err)
-//                     });
-//                 }
-//                 // result.photo = undefined;
-//                 res.json(result);
-//             });
-//         });
-//     });
-// };
 
 exports.photo = (req, res) => {
     const slug = req.params.slug.toLowerCase();
@@ -335,7 +263,6 @@ exports.photo = (req, res) => {
 };
 
 exports.listRelated = (req, res) => {
-    // console.log(req.body.blog);
     let limit = req.body.limit ? parseInt(req.body.limit) : 3;
     const { _id, categories } = req.body.blog;
 
@@ -353,7 +280,6 @@ exports.listRelated = (req, res) => {
         });
 };
 
-//
 exports.listSearch = (req, res) => {
     console.log(req.query);
     const { search } = req.query;

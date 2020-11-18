@@ -25,7 +25,7 @@ router.get('/blog/photo/:slug', photo);
 router.post('/blogs/related', listRelated);
 router.get('/blogs/search', listSearch);
 
-// auth user blog crud
+// Auth user blog crud
 router.post('/user/blog', requireSignin, authMiddleware, create);
 router.get('/:username/blogs', listByUser);
 router.delete('/user/blog/:slug', requireSignin, authMiddleware, canUpdateDeleteBlog, remove);

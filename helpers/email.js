@@ -1,5 +1,5 @@
 const nodeMailer = require("nodemailer");
- 
+
 exports.sendEmailWithNodemailer = (req, res, emailData) => {
   const transporter = nodeMailer.createTransport({
     host: "smtp.gmail.com",
@@ -7,14 +7,14 @@ exports.sendEmailWithNodemailer = (req, res, emailData) => {
     secure: false,
     requireTLS: true,
     auth: {
-      user: process.env.EMAIL_TO, // MAKE SURE THIS EMAIL IS YOUR GMAIL FOR WHICH YOU GENERATED APP PASSWORD
-      pass: process.env.MAIL_APP_PASSWORD, // MAKE SURE THIS PASSWORD IS YOUR GMAIL APP PASSWORD WHICH YOU GENERATED EARLIER
+      user: process.env.EMAIL_TO,
+      pass: process.env.MAIL_APP_PASSWORD,
     },
     tls: {
       ciphers: "SSLv3",
     },
   });
- 
+
   return transporter
     .sendMail(emailData)
     .then((info) => {
@@ -25,4 +25,3 @@ exports.sendEmailWithNodemailer = (req, res, emailData) => {
     })
     .catch((err) => console.log(`Problem sending email: ${err}`));
 };
- 
