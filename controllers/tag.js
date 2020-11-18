@@ -6,7 +6,6 @@ const { errorHandler } = require('../helpers/dbErrorHandler');
 exports.create = (req, res) => {
   const { name } = req.body;
   let slug = slugify(name).toLowerCase();
-
   let tag = new Tag({ name, slug });
 
   tag.save((err, data) => {
@@ -19,7 +18,6 @@ exports.create = (req, res) => {
   });
 };
 
-
 exports.list = (req, res) => {
   Tag.find({}).exec((err, data) => {
     if (err) {
@@ -31,7 +29,6 @@ exports.list = (req, res) => {
   });
 };
 
-
 exports.read = (req, res) => {
   const slug = req.params.slug.toLowerCase();
 
@@ -41,7 +38,7 @@ exports.read = (req, res) => {
         error: errorHandler(err)
       });
     };
-    // res.json(tag);
+
     Blog.find({ tags: tag })
       .populate('categories', '_id name slug')
       .populate('tags', '_id name slug')

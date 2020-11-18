@@ -5,8 +5,8 @@ exports.contactForm = (req, res) => {
   const { name, email, message } = req.body;
  
   const emailData = {
-    from: email, // MAKE SURE THIS EMAIL IS YOUR GMAIL FOR WHICH YOU GENERATED APP PASSWORD
-    to: process.env.EMAIL_TO, // WHO SHOULD BE RECEIVING THIS EMAIL? IT SHOULD BE YOUR GMAIL
+    from: email,
+    to: process.env.EMAIL_TO,
     subject: `Contact form - ${process.env.APP_NAME}`,
     text: `Email received from contact from \n Sender name: ${name} \n Sender email: ${email} \n Sender message: ${message}`,
     html: `
@@ -23,7 +23,6 @@ exports.contactForm = (req, res) => {
 
 exports.contactBlogAuthorForm = (req, res) => {
   const { authorEmail, email, name, message } = req.body;
-  // console.log(req.body);
 
   let maillist = [authorEmail, process.env.EMAIL_TO];
 
@@ -40,6 +39,5 @@ exports.contactBlogAuthorForm = (req, res) => {
           <hr />
       `
   };
-
   sendEmailWithNodemailer(req, res, emailData);
 };
