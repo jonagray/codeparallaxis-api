@@ -189,60 +189,63 @@ exports.remove = (req, res) => {
 };
 
 exports.update = (req, res) => {
-    let form = new formidable.IncomingForm();
-    form.keepExtension = true;
-    form.parse(req, (err, fields, files) => {
+    const slug = req.params.slug.toLowerCase();
+
+    Blog.findOne({ slug }).exec((err, oldBlog) => {
         if (err) {
             return res.status(400).json({
-                error: 'Photo could not be uploaded'
+                error: errorHandler(err)
             });
         }
 
-        let user = req.profile;
-        let existingRole = user.role;
-        let existingEmail = user.email;
+        let form = new formidable.IncomingForm();
+        form.keepExtensions = true;
 
-        if (fields && fields.username && fields.username.length > 12) {
-            return res.status(400).json({
-                error: 'Username should be less than 12 characters long'
-            });
-        }
-
-        if (fields.username) {
-            fields.username = slugify(fields.username).toLowerCase();
-        }
-
-        if (fields.password && fields.password.length < 6) {
-            return res.status(400).json({
-                error: 'Password should be min 6 characters long'
-            });
-        }
-
-        user = _.extend(user, fields);
-        user.role = existingRole;
-        user.email = existingEmail;
-
-        if (files.photo) {
-            if (files.photo.size > 10000000) {
-                return res.status(400).json({
-                    error: 'Image should be less than 1mb'
-                });
-            }
-            user.photo.data = fs.readFileSync(files.photo.path);
-            user.photo.contentType = files.photo.type;
-        }
-
-        user.save((err, result) => {
+        form.parse(req, (err, fields, files) => {
             if (err) {
-                console.log('profile udpate error', err);
                 return res.status(400).json({
-                    error: errorHandler(err)
+                    error: 'Image could not upload'
                 });
             }
-            user.hashed_password = undefined;
-            user.salt = undefined;
-            user.photo = undefined;
-            res.json(user);
+
+            let slugBeforeMerge = oldBlog.slug;
+            oldBlog = _.merge(oldBlog, fields);
+            oldBlog.slug = slugBeforeMerge;
+
+            const { body, desc, categories, tags } = fields;
+
+            if (body) {
+                oldBlog.excerpt = smartTrim(body, 320, ' ', ' ...');
+                oldBlog.desc = stripHtml(body.substring(0, 160));
+            }
+
+            if (categories) {
+                oldBlog.categories = categories.split(',');
+            }
+
+            if (tags) {
+                oldBlog.tags = tags.split(',');
+            }
+
+            if (files.photo) {
+                if (files.photo.size > 10000000) {
+                    return res.status(400).json({
+                        error: 'Image should be less then 1mb in size'
+                    });
+                }
+                oldBlog.photo.data = fs.readFileSync(files.photo.path);
+                oldBlog.photo.contentType = files.photo.type;
+            }
+
+            oldBlog.save((err, result) => {
+                if (err) {
+                    return res.status(400).json({
+                        error: errorHandler(err)
+                    });
+                }
+                // result.photo = undefined;
+                res.json(result);
+            });
         });
     });
 };
