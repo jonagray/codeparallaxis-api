@@ -5,7 +5,7 @@ const { create, list, read, remove } = require('../controllers/tag');
 const { runValidation } = require('../validators');
 const { createTagValidator } = require('../validators/tag');
 
-router.post('/tag', createTagValidator, runValidation, requireSignin, adminMiddleware, create);
+router.post('/tag', createTagValidator, runValidation, requireSignin, create);
 router.get('/tags', list);
 router.get('/tag/:slug', read);
 router.delete('/tag/:slug', requireSignin, adminMiddleware, remove);
